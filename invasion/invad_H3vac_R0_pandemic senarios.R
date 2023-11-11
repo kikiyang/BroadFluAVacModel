@@ -230,27 +230,28 @@ trough.R0 <- ldply(invad.list.R0, function(x){
 })
 troughR0 <- trough.R0 %>%
   mutate(immDur=1/H3vac.sigmaV,vac.rate=H3vac.cov/52*100)
-save(trough.R0,pandSize.R0,file='invasion/plot.data.RData')
-
+save(troughR0,pandSize.R0,file='invasion/plot.data.RData')
 
 pl.troughR0 <- ggplot(troughR0,aes(x=vac.rate,y=H3vac.tau2,z=trough1)) +
-  facet_grid(immDur~R0_1,scales='free',labeller = label_bquote(rows=sigma[V]:.(1/immDur), 
-                                                          cols=R[0]^1:.(R0_1)))+
+  facet_grid(immDur~R0_1,scales='free',
+             labeller = label_bquote(rows=sigma[V]:.(1/immDur), 
+                                     cols=R[0]^1:.(R0_1)))+
   theme_classic()+
   theme(panel.spacing = unit(0.6, "lines"))+
-  geom_contour_filled(bins=6,breaks=c(-2,0,0.000036,0.000072,0.000108,0.000144,0.000180)) + 
-  geom_contour(bins=6,breaks=c(-2,0,0.000036,0.000072,0.000108,0.000144,0.000180),aes(colour = factor(..level..==0,levels = c(T, F), 
-                                          labels = c("Pandemic persistence","")))) +
-  scale_colour_manual(values = c("darkred", "#00000000")) + 
-  labs(fill='Trough depth (x 10e-05)',color='')+
+  geom_contour_filled(bins=4,breaks=c(-2,0,10e-8,10e-6,10e-4)) +
+  geom_contour(bins=4,breaks=c(-2,0,10e-8,10e-6,10e-4),
+               aes(colour = factor(..level..==10e-8,levels = c(T, F),
+              labels = c("Pandemic persistence","")))) +
+  scale_colour_manual(values = c("#E55B13", "#00000000")) +
+  labs(fill='Trough depth',color='')+
   xlab('Vaccination rate (%) per week')+
   scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1'))+
   scale_y_continuous(expand = c(0,0))+
-  # scale_fill_manual(values=rev(heat.colors(12)))+
-  scale_fill_manual(values=c('grey','#fed976','#feb24c','#e31a1c','#bd0026','#800026'),
-                    labels=c('No trough (extinction)','<3.6','3.6 - 7.2',
-                             '7.2 - 10.8','10.8 - 14.4',
-                             '14.4 - 18'))+
+  scale_fill_manual(values=c('grey','#FFF4BD',
+                             '#feb24c','#bd0026'),
+                    labels=list("no invasion",expression(0-10^{-8}), 
+                                expression(10^{-8}-10^{-6}),
+                                expression(10^{-6}-10^{-4})))+
   labs(y=expression('susceptibility reduction by vaccines'~tau))
 pl.troughR0
 ggsave('invasion/H3endemicVac.pandStrR0varyRhoInvad.NoNatImm.trough.png',pl.troughR0, width=7,height=6)
