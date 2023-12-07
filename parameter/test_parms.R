@@ -9,15 +9,13 @@ theme_set(theme_bw())
 inci <- read.csv('data/USA/no.cases_inci.allsubtypes.csv')
 inci <- inci %>%
   select(YEAR,WEEK,month,inci.A.H1,inci.A.H3,cases.A.H1,cases.A.H3)
-## load US vaccine coverage and effectiveness
-vac.cov.eff <- read.csv('data/USA/FluVaxView_CDC/VacCov_US_national.csv')
 
 start.season <- 2004
 end.season <- 2018
 no.season <- c(2008,2009,2010)
 ## incidence = multiplying
 ## bunch of things
-data <- left_join(inci,vac.cov.eff,by=c('YEAR'='Season','month'='Month')) %>%
+data <- inci %>%
   mutate(Season= if_else(month<7,as.integer(YEAR-1),YEAR)) %>%
   filter(Season<end.season+1 & Season>start.season-1) %>%
   filter(Season!=no.season[1] & Season!=no.season[2]&Season!=no.season[3])

@@ -180,8 +180,7 @@ invad.list.R0 <- lapply(c(1,1.3,1.6,3.2),function (r){
 })
 save.image('H3endemicVac.pandStrInvad5yrs.NoNatImm.RData')
 
-library(plyr)
-library(dplyr)
+
 
 # pandSize.R0 <- lapply(invad.list.R0, function(x){
 #   invad.list <- x[[1]]
@@ -201,7 +200,8 @@ library(dplyr)
 #   return(trough)
 # })
 
-
+library(plyr)
+library(dplyr)
 trough.R0 <- ldply(invad.list.R0, function(x){
   invad.list <- lapply(x, function(df){
     a <- ldply(df,rbind)
@@ -231,7 +231,7 @@ trough.R0 <- ldply(invad.list.R0, function(x){
 troughR0 <- trough.R0 %>%
   mutate(immDur=1/H3vac.sigmaV,vac.rate=H3vac.cov/52*100)
 save(troughR0,pandSize.R0,file='invasion/plot.data.RData')
-
+library(ggplot2)
 pl.troughR0 <- ggplot(troughR0,aes(x=vac.rate,y=H3vac.tau2,z=trough1)) +
   facet_grid(immDur~R0_1,scales='free',
              labeller = label_bquote(rows=sigma[V]:.(1/immDur), 
@@ -240,21 +240,21 @@ pl.troughR0 <- ggplot(troughR0,aes(x=vac.rate,y=H3vac.tau2,z=trough1)) +
   theme(panel.spacing = unit(0.6, "lines"))+
   geom_contour_filled(bins=4,breaks=c(-2,0,10e-8,10e-6,10e-4)) +
   geom_contour(bins=4,breaks=c(-2,0,10e-8,10e-6,10e-4),
-               aes(colour = factor(..level..==10e-8,levels = c(T, F),
+               aes(colour = factor(..level..==10e-6,levels = c(T, F),
               labels = c("Pandemic persistence","")))) +
-  scale_colour_manual(values = c("#E55B13", "#00000000")) +
+  scale_colour_manual(values = c("black", "#00000000")) +
   labs(fill='Trough depth',color='')+
   xlab('Vaccination rate (%) per week')+
   scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1'))+
   scale_y_continuous(expand = c(0,0))+
   scale_fill_manual(values=c('grey','#FFF4BD',
                              '#feb24c','#bd0026'),
-                    labels=list("no invasion",expression(0-10^{-8}), 
+                    labels=list("No invasion",expression(0-10^{-8}), 
                                 expression(10^{-8}-10^{-6}),
                                 expression(10^{-6}-10^{-4})))+
   labs(y=expression('susceptibility reduction by vaccines'~tau))
 pl.troughR0
-ggsave('invasion/H3endemicVac.pandStrR0varyRhoInvad.NoNatImm.trough.png',pl.troughR0, width=7,height=6)
+ggsave('H3endemicVac.pandStrR0varyRhoInvad.NoNatImm.trough.png',pl.troughR0, width=7,height=6)
 
 # trough.R0big <- troughR0 %>%
 #   filter(R0==3.2)
