@@ -202,6 +202,7 @@ save.image('H3endemicVac.pandStrInvad5yrs.NoNatImm.RData')
 
 library(plyr)
 library(dplyr)
+
 trough.R0 <- ldply(invad.list.R0, function(x){
   invad.list <- lapply(x, function(df){
     a <- ldply(df,rbind)
@@ -228,10 +229,14 @@ trough.R0 <- ldply(invad.list.R0, function(x){
   
   return (trough)
 })
+save(trough.R0,pandSize.R0,file='invasion/plot.data.RData')
+
+load("plot.data.RData")
 troughR0 <- trough.R0 %>%
   mutate(immDur=1/H3vac.sigmaV,vac.rate=H3vac.cov/52*100)
-save(troughR0,pandSize.R0,file='invasion/plot.data.RData')
+
 library(ggplot2)
+colnames(troughR0)
 pl.troughR0 <- ggplot(troughR0,aes(x=vac.rate,y=H3vac.tau2,z=trough1)) +
   facet_grid(immDur~R0_1,scales='free',
              labeller = label_bquote(rows=sigma[V]:.(1/immDur), 
@@ -255,6 +260,32 @@ pl.troughR0 <- ggplot(troughR0,aes(x=vac.rate,y=H3vac.tau2,z=trough1)) +
   labs(y=expression('susceptibility reduction by vaccines'~tau))
 pl.troughR0
 ggsave('H3endemicVac.pandStrR0varyRhoInvad.NoNatImm.trough.png',pl.troughR0, width=7,height=6)
+
+pl.endemic.troughR0 <- ggplot(troughR0,aes(x=vac.rate,y=H3vac.tau2,z=trough2)) +
+  facet_grid(immDur~R0_1,scales='free',
+             labeller = label_bquote(rows=sigma[V]:.(1/immDur), 
+                                     cols=R[0]^1:.(R0_1)))+
+  theme_classic()+
+  theme(panel.spacing = unit(0.6, "lines"))+
+  geom_contour_filled(bins=5,breaks=c(-2,0,10e-8,10e-6,10e-4,10e-2)) +
+  geom_contour(bins=5,breaks=c(-2,0,10e-8,10e-6,10e-4,10e-2),
+               aes(colour = factor(..level..==10e-6,levels = c(T, F),
+              labels = c("Endemic persistence","")))) +
+  scale_colour_manual(values = c("black", "#00000000")) +
+  labs(fill='Trough depth',color='')+
+  xlab('Vaccination rate (%) per week')+
+  scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1'))+
+  scale_y_continuous(expand = c(0,0))+
+  scale_fill_manual(values=c('grey','#FFF4BD',
+                             '#feb24c','#bd0026', '#800026'),
+                    labels=list("Extinction",expression(0-10^{-8}), 
+                                expression(10^{-8}-10^{-6}),
+                                expression(10^{-6}-10^{-4}), expression(10^{-4}-10^{-2})))+
+  labs(y=expression('susceptibility reduction by vaccines'~tau))
+pl.endemic.troughR0
+ggsave('trough_EndemicStrain.png',pl.endemic.troughR0, width=7,height=6)
+
+
 
 # trough.R0big <- troughR0 %>%
 #   filter(R0==3.2)
