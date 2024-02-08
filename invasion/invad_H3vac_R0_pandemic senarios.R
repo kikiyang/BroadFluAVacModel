@@ -181,25 +181,6 @@ invad.list.R0 <- lapply(c(1,1.3,1.6,3.2),function (r){
 save.image('H3endemicVac.pandStrInvad5yrs.NoNatImm.RData')
 
 
-
-# pandSize.R0 <- lapply(invad.list.R0, function(x){
-#   invad.list <- x[[1]]
-#   trough <- ldply(invad.list,rbind) %>%
-#     filter(time==1)
-#   trough$R0 <- x[[2]]
-#   return (trough)
-# })
-
-# pandSize.R0 <- ldply(invad.list.R0, function(x){
-#   invad.list <- lapply(x, function(df){
-#     a <- ldply(df,rbind)
-#     return(a)
-#   })
-#   trough <- ldply(invad.list,rbind) %>%
-#     filter(time==5)
-#   return(trough)
-# })
-
 library(plyr)
 library(dplyr)
 
@@ -287,46 +268,6 @@ ggsave('trough_EndemicStrain.png',pl.endemic.troughR0, width=7,height=6)
 
 
 
-# trough.R0big <- troughR0 %>%
-#   filter(R0==3.2)
-# 
-# trough.R0big.rho <- trough.R0big %>%
-#   mutate(subpl="vaccine immunity duration (yr)", 
-#          pl.y=immDur, grp=vac.rate) %>%
-#   filter(grp==1.730)
-# 
-# trough.R0big.sigmaV <- trough.R0big %>%
-#   mutate(subpl="vaccination rate (%) per week", 
-#          pl.y=vac.rate, grp=immDur) %>%
-#   filter(grp==16)
-# 
-# trough.R0big.pl <- trough.R0big.sigmaV %>%
-#   rbind(trough.R0big.rho)
-# 
-# pl <- ggplot(trough.R0big.pl,aes(x=vac.tau2,y=pl.y,z=trough)) +
-#   facet_wrap(subpl~.,scales='free',nrow=2,strip.position = "left")+
-#   theme_classic()+theme(strip.placement="outside",strip.background = element_blank(),
-#                         strip.text.y = element_text(size = 10, angle = -90,colour = 'black'))+
-#   geom_contour_filled(bins=10)+
-#   labs(fill='Trough depth',color='')+
-#   ylab(NULL)+
-#   scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1'))+
-#   scale_y_continuous(expand = c(0,0))+
-#   # scale_fill_manual(values=rev(heat.colors(12)))+
-#   scale_fill_manual(values=c('#fed976','#feb24c','#e31a1c','#bd0026','#800026',
-#   '#CCBAD7FF', '#BA9FC7FF','#A783B6FF','#8F5EA1FF','black'))+
-#   # '#773A8BFF','#572872FF','#361959FF','black'))+
-#   # '#e31a1c'
-#   # ,'#bd0026','#800026'))+
-#   # scale_color_manual(values=c('#1a9850','#ffffcc','#ffeda0','#fed976','#feb24c',
-#   #                             'black','#fc4e2a','#e31a1c','#bd0026','#800026'))+
-#   labs(x=expression('susceptibility reduction by vaccines'~tau))
-# pl
-# ggsave('H3endemicVac.pandStrR0_3.2_Invad_pandSize.NoNatImm.png',pl, width=6,height=6)
-# 
-# trough.R0big.sigmaV %>%
-#   filter(vac.rate==1.730)
-# 
 traj.R0 <- ldply(invad.list.R0, function(x){
   invad.list <- lapply(x, function(df){
     a <- ldply(df,rbind)
@@ -360,87 +301,3 @@ pl.traj <- ggplot(data=traj %>% filter(H3vac.tau2==0.2|H3vac.tau2==0.4|H3vac.tau
   labs(lty='susceptibility reduction\nby vaccines',
        y = 'Incidence of the pandemic strain')
 ggsave('invasion/traj.png',pl.traj,width=6,height=3)
-# 
-# 
-# traj.R0.2 <- lapply(invad.list.R0.5yr, function(x){
-#   invad.list <- x[[1]]
-#   trough <- ldply(invad.list,rbind) %>%
-#     mutate(immDur=1/vac.sigmaV,vac.rate=signif(vac.cov/52*100,3)) %>%
-#     filter(vac.tau2==0.2 & vac.rate==0)
-#   trough$R0 <- x[[2]]
-#   return (trough)
-# })
-# 
-# traj <- traj.R0.2[[4]]
-# 
-# pl.traj <- ggplot(data=traj,mapping = aes(x=time))+
-#   geom_line(aes(y=inci1,lty=factor(immDur)))+
-#   theme_classic() +
-#   scale_y_log10()+
-#   labs(lty='susceptibility reduction\nby vaccines',
-#        y = 'Incidence of invading strain')
-# 
-# library(ggplot2)
-# pandSize.R0 <- pandSize.R0 %>%
-#   mutate(immDur=1/H3vac.sigmaV,vac.rate=H3vac.cov/52*100,
-#          pandSize=I1+I21+IV1)
-# 
-# pl.pandSize.R0 <- ggplot(pandSize.R0,aes(x=vac.rate,y=H3vac.tau2,z=pandSize*1000)) +
-#   
-#   
-#   ggplot(trough.R0,aes(x=vac.rate,y=H3vac.tau2,z=pandSize*1000)) +
-#   facet_grid(immDur~R0_1,scales='free',labeller = label_bquote(rows=sigma[V]:.(1/immDur), 
-#                                                                cols=R[0]^1:.(R0_1)))+
-#   theme_classic()+
-#   theme(panel.spacing = unit(0.6, "lines"))+
-#   geom_contour_filled(bins=5)+
-#   labs(fill='Pandemic attack \nrate (x10e-3)',color='')+
-#   xlab('Vaccination rate (%) per week')+
-#   scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1'))+
-#   scale_y_continuous(expand = c(0,0))+
-#   # scale_fill_manual(values=rev(heat.colors(12)))+
-#   scale_fill_manual(values=c('#fed976','#feb24c','#e31a1c','#bd0026','#800026'))+
-#   labs(y=expression('susceptibility reduction by vaccines'~tau))
-# pl.pandSize.R0
-# ggsave('invasion/H3endemicVac.pandStrR0varyRhoInvad.NoNatImm.PandSize.png',pl.pandSize.R0, width=7,height=6)
-
-# pandSize.R0big <- pandSize %>%
-#   filter(R0==3.2)
-# 
-# pandSize.R0big.rho <- pandSize.R0big %>%
-#   # filter(vac.cov==unique(simdf.t3$vac.cov)[2]) %>%
-#   mutate(subpl="vaccine immunity duration (yr)", 
-#          pl.y=immDur, grp=vac.rate) %>%
-#   # filter(R0==1|R0==1.4|R0==1.8|R0==2.2|R0==2.6|R0==3) %>%
-#   # filter(grp==0 | grp==0.577 | grp==1.15 | grp==1.73)
-#   filter(grp==1.730)
-# 
-# pandSize.R0big.sigmaV <- pandSize.R0big %>%
-#   # filter(vac.sigmaV==unique(simdf.t3$vac.sigmaV)[3]) %>%
-#   mutate(subpl="vaccination rate (%) per week", 
-#          pl.y=vac.rate, grp=immDur) %>%
-#   # filter(grp==1 | grp==4 | grp==16 | grp==64)
-#   filter(grp==16)
-# pandSize.R0big.pl <- pandSize.R0big.sigmaV %>%
-#   rbind(pandSize.R0big.rho)
-# 
-# pl <- ggplot(pandSize.R0big.pl,aes(x=vac.tau2,y=pl.y,z=Itotal1)) +
-#   facet_wrap(subpl~.,scales='free',nrow=2,strip.position = "left")+
-#   theme_classic()+theme(strip.placement="outside",strip.background = element_blank(),
-#                         strip.text.y = element_text(size = 10, angle = -90,colour = 'black'))+
-#   geom_contour_filled(bins=5)+
-#   labs(fill='Pandemic attack rate',color='')+
-#   ylab(NULL)+
-#   scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1'))+
-#   scale_y_continuous(expand = c(0,0))+
-#   # scale_fill_manual(values=rev(heat.colors(12)))+
-#   scale_fill_manual(values=c('#fed976','#feb24c','#e31a1c','#bd0026','#800026'))+
-#   # '#CCBAD7FF', '#BA9FC7FF','#A783B6FF','#8F5EA1FF',
-#   # '#773A8BFF','#572872FF','#361959FF','black'))+
-#   # '#e31a1c'
-#   # ,'#bd0026','#800026'))+
-#   # scale_color_manual(values=c('#1a9850','#ffffcc','#ffeda0','#fed976','#feb24c',
-#   #                             'black','#fc4e2a','#e31a1c','#bd0026','#800026'))+
-#   labs(x=expression('susceptibility reduction by vaccines'~tau))
-# 
-# ggsave('H3endemicVac.pandStrR0_3.2_Invad_pandSize.NoNatImm.png',pl, width=6,height=6)

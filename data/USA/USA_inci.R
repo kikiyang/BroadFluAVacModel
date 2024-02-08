@@ -1,4 +1,4 @@
-setwd('~/Documents/P3_UIV/BroadFluVacModel/data/USA')
+setwd('~/BroadFluVacModel/data/USA')
 pop = read.csv(file=c('Monthly_population/natmonthl_2000_2020.csv'))
 library(lubridate)
 pop$year <- year(mdy(pop$Month))
@@ -16,9 +16,7 @@ viral_cl = read.csv("WHO_NREVSS_Clinical_Labs_CLEAN.csv")
 
 viral04_15 <- viral15[viral15$YEAR>2003,]
 viral04_15$pos_prop <- viral04_15$PERCENT.POSITIVE/100
-# library(dplyr)
-# viral_ph %>%
-#   filter(.$H3N2v>.$A..H3.)
+
 
 library(dplyr)
 viral_ph <- viral_ph %>% select(!(REGION.TYPE:REGION))
@@ -93,7 +91,7 @@ inci <- viral04_20 %>%
          inci.A.H3=ILI.prop*pos_prop*PROP.A.H3.EST,
          inci.B=ILI.prop*pos_prop*PROP.B.EST)
 
-# write.csv(inci,file='no.cases_inci.allsubtypes.csv')
+write.csv(inci,file='no.cases_inci.allsubtypes.csv')
 
 library(tidyverse)
 inci4pl <- inci %>%
@@ -109,11 +107,6 @@ incih3 <- inci %>%
 # incidence B
 inciB <- inci %>%
   select(YEAR,WEEK,inci.B)
-
-# write.csv(inci4pl,'incidence_allsubtypes.csv')
-# write.csv(incih1,'incidence_USA_h1.csv')
-# write.csv(incih3,'incidence_USA_h3.csv')
-# write.csv(inciB,'incidence_USA_B.csv')
 
 ggplot(data=inci4pl,mapping = aes(x=ymd(paste0(YEAR,'-01-01'))+weeks(WEEK-1),y=inci,color=subtype)) +
        geom_line() + 

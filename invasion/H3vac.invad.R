@@ -1,6 +1,3 @@
-## Scenario 1: Invasion of a immune escaped new variant;
-## Scenario 2: Invasion of an existing strain in post-COVID era 
-## when T-cell immunity is low in the population.
 rm(list=ls())
 # setwd('invasion/')
 library(deSolve)
