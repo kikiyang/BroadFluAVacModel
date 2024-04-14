@@ -89,7 +89,7 @@ sir.mod.fit <- function(t,y,parms){
 const_parms <- c(R0_1=1.44,R0_2=1.60,sigma1=1/3.12,sigma2=1/2.28,mu=1/75, #from Yang et al., 2020
                  # theta1=sumry.stats.df_a04_top[k,'theta1'],
                  # theta2=sumry.stats.df_a04_top[k,'theta2'],
-                 theta1=0.55,theta2=0.35,
+                 theta1=0.55,theta2=0.45,
                  gamma1=365/2.64,gamma2=365/3.03, #from Yang et al., 2020
                  a1=0.04,a2=0.04,sigmaV=0,
                  # sigmaT=SIGMAT[idx],
@@ -137,8 +137,8 @@ for(i in 1:((nrow(sim.stats)-1)/12)){
   sumry.stats.peryr[i,'auto_corr_h3'] <- acf(epi.size2.sim, plot=FALSE)[[1]][2,,1]
   sumry.stats.peryr[i,'coeff_var_h1'] <- sd(epi.size1.sim)/mean(epi.size1.sim)
   sumry.stats.peryr[i,'coeff_var_h3'] <- sd(epi.size2.sim)/mean(epi.size2.sim)
-  sumry.stats.peryr[i,'theta1'] <- sumry.stats.df_a04_top[k,'theta1']
-  sumry.stats.peryr[i,'theta2'] <- sumry.stats.df_a04_top[k,'theta2']
+  sumry.stats.peryr[i,'theta1'] <- 0.55
+  sumry.stats.peryr[i,'theta2'] <- 0.45
 }
   
   # stats.all <- stats.all %>%
@@ -151,107 +151,110 @@ for(i in 1:((nrow(sim.stats)-1)/12)){
 ## plot results (horizental line to indicate data?)
 # ggplot(stats.all,aes(corr)) +
 #   facet_wrap(~param_grp) + 
-ggplot(sumry.stats.peryr,aes(corr)) +
+library(gridExtra)
+plot1 <- ggplot(sumry.stats.peryr, aes(corr)) +
   geom_histogram() +
-  geom_vline(xintercept=sumry.stats.data$corr,color='grey',linetype=2)+
-  labs(x='Correlation of H1 and H3 incidence')
+  geom_vline(xintercept = sumry.stats.data$corr, color = 'grey', linetype = 2) +
+  labs(x = 'Correlation of H1 and H3 incidence')
 
-# ggplot(stats.all) + 
-#   facet_wrap(~param_grp) + 
-ggplot(sumry.stats.peryr) +
-  geom_histogram(aes(auto_corr_h1),fill='darkred')+
-  geom_histogram(aes(auto_corr_h3),fill='steelblue')+
-  geom_vline(xintercept=sumry.stats.data$auto_corr_h1,color='darkred',linetype=2)+
-  geom_vline(xintercept=sumry.stats.data$auto_corr_h3,color='steelblue',linetype=2)+
-  labs(x='Auto-correlation of the incidence')
-  
-# ggplot(stats.all) + 
-#   facet_wrap(~param_grp) +
-ggplot(sumry.stats.peryr) +
-  geom_histogram(aes(coeff_var_h1),fill='darkred')+
-  geom_histogram(aes(coeff_var_h3),fill='steelblue')+
-  geom_vline(xintercept=sumry.stats.data$coeff_var_h1,color='darkred',linetype=2)+
-  geom_vline(xintercept=sumry.stats.data$coeff_var_h3,color='steelblue',linetype=2)+
-  labs(x='Coefficient of variation of the incidence')
+plot2 <- ggplot(sumry.stats.peryr) +
+  geom_histogram(aes(auto_corr_h1), fill = 'darkred') +
+  geom_histogram(aes(auto_corr_h3), fill = 'steelblue') +
+  geom_vline(xintercept = sumry.stats.data$auto_corr_h1, color = 'darkred', linetype = 2) +
+  geom_vline(xintercept = sumry.stats.data$auto_corr_h3, color = 'steelblue', linetype = 2) +
+  labs(x = 'Auto-correlation of the incidence')
+
+plot3 <- ggplot(sumry.stats.peryr) +
+  geom_histogram(aes(coeff_var_h1), fill = 'darkred') +
+  geom_histogram(aes(coeff_var_h3), fill = 'steelblue') +
+  geom_vline(xintercept = sumry.stats.data$coeff_var_h1, color = 'darkred', linetype = 2) +
+  geom_vline(xintercept = sumry.stats.data$coeff_var_h3, color = 'steelblue', linetype = 2) +
+  labs(x = 'Coefficient of variation of the incidence')
+
+combined_plot <- grid.arrange(plot1, plot2, plot3, ncol = 1)
+print(combined_plot)
+ggsave('../figures/param2.png',combined_plot, width = 10, height = 15, units = 'cm', dpi = 300)
 
 
-theta1 <- seq(0.05,1,by=0.05)
-theta2 <- seq(0.05,1,by=0.05)
-sumry.stats.ls <- list()
-sumry.stats.df <- data.frame()
-for(idx1 in 1:length(theta1)){
-  for(idx2 in 1:length(theta2)){
-    const_parms <- c(R0_1=1.44,R0_2=1.60,sigma1=1/3.12,sigma2=1/2.28,mu=1/75, #from Yang et al., 2020
-                     theta1=theta1[idx1],theta2=theta2[idx2],gamma1=365/2.64,gamma2=365/3.03, #from Yang et al., 2020
-                     a1=0.1,a2=0.1,sigmaV=0,
-                     sigmaT=365/(30*2), #from Ferguson et al., 2003
-                     nu1=0,nu2=0,rho=0,rho1=0,rho2=0,eta=0,eta2=0,
-                     tau=0,tau2=0)
-    sim <- rk4(func=sir.mod.fit,
-               times=seq(0,1650,by=1/104),
-               y=c(S=0.998,I1=0.001,I2=0.001,V=0,R12=0,R1=0,R2=0,I12=0,I21=0,IV2=0,
-                   RT1=0,RT2=0,RV1=0,RV2=0,RVT2=0,IV1=0,RVT1=0),
-               parms=c(const_parms['R0_1'],const_parms['R0_2'],
-                       const_parms['sigma1'],const_parms['sigma2'],
-                       const_parms['sigmaV'],const_parms['sigmaT'],
-                       const_parms['theta1'],const_parms['theta2'],
-                       const_parms['a1'], const_parms['a2'],
-                       const_parms['gamma1'],const_parms['gamma2'],
-                       const_parms['mu'],const_parms['rho'],const_parms['rho1'],
-                       const_parms['rho2'],const_parms['nu1'],const_parms['nu2'],
-                       const_parms['tau'],const_parms['tau2'],
-                       const_parms['eta'],const_parms['eta2']))
-    sim.output <- as.data.frame(sim) %>%
-      filter(time>150)
-    sim.stats <- sim.output %>%
-      mutate(year=year(date_decimal(time)),month=month(date_decimal(time))) %>%
-      mutate(Season=if_else(month<7,year-1,year)) %>%
-      group_by(Season) %>%
-      summarise(inci.total1 = sum(inci1,na.rm=TRUE),
-                inci.total2 = sum(inci2,na.rm=TRUE))
-    sumry.stats.per15yrs <- data.frame()
-    for(i in 1:((nrow(sim.stats)-1)/15)){
-      epi.size1.sim <- sim.stats[((i-1)*15+1):(i*15),]$inci.total1
-      epi.size2.sim <- sim.stats[((i-1)*15+1):(i*15),]$inci.total2
-      sumry.stats.per15yrs[i,'corr'] <- cor(epi.size1.sim,epi.size2.sim)
-      sumry.stats.per15yrs[i,'auto_corr_h1'] <- acf(epi.size1.sim, plot=FALSE)[[1]][2,,1]
-      sumry.stats.per15yrs[i,'auto_corr_h3'] <- acf(epi.size2.sim, plot=FALSE)[[1]][2,,1]
-      sumry.stats.per15yrs[i,'coeff_var_h1'] <- sd(epi.size1.sim)/mean(epi.size1.sim)
-      sumry.stats.per15yrs[i,'coeff_var_h3'] <- sd(epi.size2.sim)/mean(epi.size2.sim)
-    }
+# theta1 <- seq(0.05,1,by=0.05)
+# theta2 <- seq(0.05,1,by=0.05)
+# sumry.stats.ls <- list()
+# sumry.stats.df <- data.frame()
+# for(idx1 in 1:length(theta1)){
+#   for(idx2 in 1:length(theta2)){
+#     const_parms <- c(R0_1=1.44,R0_2=1.60,sigma1=1/3.12,sigma2=1/2.28,mu=1/75, #from Yang et al., 2020
+#                      theta1=theta1[idx1],theta2=theta2[idx2],gamma1=365/2.64,gamma2=365/3.03, #from Yang et al., 2020
+#                      a1=0.1,a2=0.1,sigmaV=0,
+#                      sigmaT=365/(30*2), #from Ferguson et al., 2003
+#                      nu1=0,nu2=0,rho=0,rho1=0,rho2=0,eta=0,eta2=0,
+#                      tau=0,tau2=0)
+#     sim <- rk4(func=sir.mod.fit,
+#                times=seq(0,1650,by=1/104),
+#                y=c(S=0.998,I1=0.001,I2=0.001,V=0,R12=0,R1=0,R2=0,I12=0,I21=0,IV2=0,
+#                    RT1=0,RT2=0,RV1=0,RV2=0,RVT2=0,IV1=0,RVT1=0),
+#                parms=c(const_parms['R0_1'],const_parms['R0_2'],
+#                        const_parms['sigma1'],const_parms['sigma2'],
+#                        const_parms['sigmaV'],const_parms['sigmaT'],
+#                        const_parms['theta1'],const_parms['theta2'],
+#                        const_parms['a1'], const_parms['a2'],
+#                        const_parms['gamma1'],const_parms['gamma2'],
+#                        const_parms['mu'],const_parms['rho'],const_parms['rho1'],
+#                        const_parms['rho2'],const_parms['nu1'],const_parms['nu2'],
+#                        const_parms['tau'],const_parms['tau2'],
+#                        const_parms['eta'],const_parms['eta2']))
+#     sim.output <- as.data.frame(sim) %>%
+#       filter(time>150)
+#     sim.stats <- sim.output %>%
+#       mutate(year=year(date_decimal(time)),month=month(date_decimal(time))) %>%
+#       mutate(Season=if_else(month<7,year-1,year)) %>%
+#       group_by(Season) %>%
+#       summarise(inci.total1 = sum(inci1,na.rm=TRUE),
+#                 inci.total2 = sum(inci2,na.rm=TRUE))
+#     sumry.stats.per15yrs <- data.frame()
+#     for(i in 1:((nrow(sim.stats)-1)/15)){
+#       epi.size1.sim <- sim.stats[((i-1)*15+1):(i*15),]$inci.total1
+#       epi.size2.sim <- sim.stats[((i-1)*15+1):(i*15),]$inci.total2
+#       sumry.stats.per15yrs[i,'corr'] <- cor(epi.size1.sim,epi.size2.sim)
+#       sumry.stats.per15yrs[i,'auto_corr_h1'] <- acf(epi.size1.sim, plot=FALSE)[[1]][2,,1]
+#       sumry.stats.per15yrs[i,'auto_corr_h3'] <- acf(epi.size2.sim, plot=FALSE)[[1]][2,,1]
+#       sumry.stats.per15yrs[i,'coeff_var_h1'] <- sd(epi.size1.sim)/mean(epi.size1.sim)
+#       sumry.stats.per15yrs[i,'coeff_var_h3'] <- sd(epi.size2.sim)/mean(epi.size2.sim)
+#     }
     
-    row.num = length(theta1)*(idx1-1)+idx2
-    sumry.stats.df[row.num,'mean_corr'] <- mean(sumry.stats.per15yrs$corr)
-    sumry.stats.df[row.num,'mean_auto_corr_h1'] <- mean(sumry.stats.per15yrs$auto_corr_h1)
-    sumry.stats.df[row.num,'mean_auto_corr_h3'] <- mean(sumry.stats.per15yrs$auto_corr_h3)
-    sumry.stats.df[row.num,'mean_coeff_var_h1'] <- mean(sumry.stats.per15yrs$coeff_var_h1)
-    sumry.stats.df[row.num,'mean_coeff_var_h3'] <- mean(sumry.stats.per15yrs$coeff_var_h3)
-    sumry.stats.df[row.num,'theta1'] <- theta1[idx1]
-    sumry.stats.df[row.num,'theta2'] <- theta2[idx2]
+#     row.num = length(theta1)*(idx1-1)+idx2
+#     sumry.stats.df[row.num,'mean_corr'] <- mean(sumry.stats.per15yrs$corr)
+#     sumry.stats.df[row.num,'mean_auto_corr_h1'] <- mean(sumry.stats.per15yrs$auto_corr_h1)
+#     sumry.stats.df[row.num,'mean_auto_corr_h3'] <- mean(sumry.stats.per15yrs$auto_corr_h3)
+#     sumry.stats.df[row.num,'mean_coeff_var_h1'] <- mean(sumry.stats.per15yrs$coeff_var_h1)
+#     sumry.stats.df[row.num,'mean_coeff_var_h3'] <- mean(sumry.stats.per15yrs$coeff_var_h3)
+#     sumry.stats.df[row.num,'theta1'] <- theta1[idx1]
+#     sumry.stats.df[row.num,'theta2'] <- theta2[idx2]
     
-    sumry.stats.ls[[row.num]] <- sumry.stats.per15yrs
-  }
-}
+#     sumry.stats.ls[[row.num]] <- sumry.stats.per15yrs
+#   }
+# }
 
-ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_corr))+
-  geom_raster()+
-  scale_fill_viridis_c()
+# ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_corr))+
+#   geom_raster()+
+#   scale_fill_viridis_c()
 
-ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_auto_corr_h1))+
-  geom_raster()+
-  scale_fill_viridis_c()
+# ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_auto_corr_h1))+
+#   geom_raster()+
+#   scale_fill_viridis_c()
 
-ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_auto_corr_h3))+
-  geom_raster()+
-  scale_fill_viridis_c()
+# ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_auto_corr_h3))+
+#   geom_raster()+
+#   scale_fill_viridis_c()
 
-ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_coeff_var_h1))+
-  geom_raster()+
-  scale_fill_viridis_c()
+# ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_coeff_var_h1))+
+#   geom_raster()+
+#   scale_fill_viridis_c()
 
-ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_coeff_var_h3))+
-  geom_raster()+
-  scale_fill_viridis_c()
+# ggplot(data=sumry.stats.df,aes(theta1,theta2,fill=mean_coeff_var_h3))+
+#   geom_raster()+
+#   scale_fill_viridis_c()
+
+setwd('parameter/')
 load('sim_mean_dist_cos_a0.rdata')
 for(i in 1:nrow(sumry.stats.df)){
   sumry.stats.df[i,'corr'] <- ifelse(is.na(sumry.stats.df[i,'mean_corr']),0,
@@ -262,15 +265,17 @@ for(i in 1:nrow(sumry.stats.df)){
 }
 
 sumry.stats.df_a0 <- sumry.stats.df %>%
-  mutate(a=0,dist=abs(corr+sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
+  mutate(a=0,dist=abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
            abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1)+
            abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3)+
            abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1)+
-           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
+           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3),
+           dist_corr = abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr),
+           dist_ac1 = abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1),
+           dist_ac3 = abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3),
+           dist_cv1 = abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1),
+           dist_cv3 = abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
   )
-
-setwd('parameter/')
-
 
 load('sim_mean_dist_cos_a002.rdata')
 for(i in 1:nrow(sumry.stats.df)){
@@ -282,11 +287,16 @@ for(i in 1:nrow(sumry.stats.df)){
 }
 
 sumry.stats.df_a02 <- sumry.stats.df %>%
-  mutate(a=0.02,dist=abs(corr+sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
+  mutate(a=0.02,dist=abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
            abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1)+
            abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3)+
            abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1)+
-           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
+           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3),
+           dist_corr = abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr),
+           dist_ac1 = abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1),
+           dist_ac3 = abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3),
+           dist_cv1 = abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1),
+           dist_cv3 = abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
   )
 
 load('sim_mean_dist_cos_a004.rdata')
@@ -299,11 +309,16 @@ for(i in 1:nrow(sumry.stats.df_a04)){
 }
 
 sumry.stats.df_a04 <- sumry.stats.df_a04 %>%
-  mutate(a=0.04,dist=abs(corr+sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
+  mutate(a=0.04,dist=abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
            abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1)+
            abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3)+
            abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1)+
-           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
+           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3),
+           dist_corr = abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr),
+           dist_ac1 = abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1),
+           dist_ac3 = abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3),
+           dist_cv1 = abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1),
+           dist_cv3 = abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
   )
 load('sim_mean_dist_cos_a006.rdata')
 for(i in 1:nrow(sumry.stats.df)){
@@ -315,11 +330,16 @@ for(i in 1:nrow(sumry.stats.df)){
 }
 
 sumry.stats.df_a06 <- sumry.stats.df %>%
-  mutate(a=0.06,dist=abs(corr+sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
+  mutate(a=0.06,dist=abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
            abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1)+
            abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3)+
            abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1)+
-           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
+           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3),
+           dist_corr = abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr),
+           dist_ac1 = abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1),
+           dist_ac3 = abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3),
+           dist_cv1 = abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1),
+           dist_cv3 = abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
   )
 load('sim_mean_dist_cos_a008.rdata')
 for(i in 1:nrow(sumry.stats.df)){
@@ -331,11 +351,16 @@ for(i in 1:nrow(sumry.stats.df)){
 }
 
 sumry.stats.df_a08 <- sumry.stats.df %>%
-  mutate(a=0.08,dist=abs(corr+sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
+  mutate(a=0.08,dist=abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
            abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1)+
            abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3)+
            abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1)+
-           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
+           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3),
+           dist_corr = abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr),
+           dist_ac1 = abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1),
+           dist_ac3 = abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3),
+           dist_cv1 = abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1),
+           dist_cv3 = abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
   )
 load('sim_mean_dist_cos_a01.rdata')
 for(i in 1:nrow(sumry.stats.df)){
@@ -347,39 +372,72 @@ for(i in 1:nrow(sumry.stats.df)){
 }
 
 sumry.stats.df_a1 <- sumry.stats.df %>%
-  mutate(a=0.1,dist=abs(corr+sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
+  mutate(a=0.1,dist=abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr)+
            abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1)+
            abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3)+
            abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1)+
-           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
+           abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3),
+           dist_corr = abs(corr-sumry.stats.data$corr)/abs(sumry.stats.data$corr),
+           dist_ac1 = abs(ac1-sumry.stats.data$auto_corr_h1)/abs(sumry.stats.data$auto_corr_h1),
+           dist_ac3 = abs(ac3-sumry.stats.data$auto_corr_h3)/abs(sumry.stats.data$auto_corr_h3),
+           dist_cv1 = abs(mean_coeff_var_h1-sumry.stats.data$coeff_var_h1)/abs(sumry.stats.data$coeff_var_h1),
+           dist_cv3 = abs(mean_coeff_var_h3-sumry.stats.data$coeff_var_h3)/abs(sumry.stats.data$coeff_var_h3)
   )
 
 sumry <- bind_rows(sumry.stats.df_a0,sumry.stats.df_a02,sumry.stats.df_a04,
-                   sumry.stats.df_a06,sumry.stats.df_a08,sumry.stats.df_a1)  
+                   sumry.stats.df_a06,sumry.stats.df_a08,sumry.stats.df_a1)
 
 sumry <- sumry %>%
   mutate(
     dist2=ifelse(dist > 5, 5, dist)
   )
-
 sumry_corrb0 <- sumry %>% filter(mean_corr<0)
+library(ggforce)
 ggplot(data=sumry_corrb0,aes(theta1,theta2,fill=dist2))+
   facet_wrap(~a,labeller = label_bquote(cols = a:.(a)))+
   geom_raster()+
-  scale_fill_viridis_c(breaks=c(3, 4, 5),
-                       labels=c("3", "4", ">5"))+
+  scale_fill_viridis_c(breaks=c(1, 2, 3, 4, 5),
+           labels=c("1", "2", "3", "4", ">5"))+
   labs(fill='Distance',x=expression(''~theta[1]),
-       y=expression(''~theta[2]))+
-  scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1'))
-  
-ggsave('distance_a_theta.png')
+    y=expression(''~theta[2]))+
+  scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1')) +
+  geom_rect(data = subset(sumry_corrb0, dist < 1.25),
+            aes(xmin = theta1 - 0.025, xmax = theta1 + 0.025,
+                ymin = theta2 - 0.025, ymax = theta2 + 0.025),
+            color = "white", fill = NA)
+ggsave('../figures/distance_a_theta.png', width = 6, height = 4, units = "in", dpi = 300)
 
-sumry3 <- sumry %>% filter(dist<3 & mean_corr<0)
-ggplot(data=sumry3,aes(theta1,theta2,fill=dist))+facet_wrap(~a)+
-  geom_raster()+ scale_fill_viridis_c()+
-  labs(fill='Distance',x=expression(''~theta[1]),
-       y=expression(''~theta[2]))+
-  scale_x_continuous(expand = c(0,0),labels=c('0','0.25','0.5','0.75','1'))
-ggsave('distance_a_theta_3.png')
-ggplot(sumry3,aes(theta1,theta2)) + geom_count() +scale_size_area()
-ggsave('count.png')
+library(tidyr)
+sumry_long <- sumry %>%
+  pivot_longer(cols = c('dist_corr', 'dist_ac1', 'dist_ac3', 'dist_cv1', 'dist_cv3'),
+               names_to = 'metric', values_to = 'value')
+sumry_long$metric <- factor(sumry_long$metric, levels = c('dist_corr', 'dist_ac1', 'dist_ac3', 'dist_cv1', 'dist_cv3'),
+                            labels = c('Correlation H1-H3', 'Auto-correlation H1', 'Auto-correlation H3', 'Coefficient of variation H1', 'Coefficient of variation H3'))
+sumry_long <- sumry_long %>% filter(mean_corr<0)
+sumry_long_a04 <- sumry_long %>% filter(a == 0.04)
+ggplot(sumry_long_a04, aes(theta1, theta2)) +
+  geom_raster(aes(fill = value)) +
+  facet_wrap(~metric, scales = 'free') +
+  scale_fill_viridis_c() +
+  labs(x=expression(''~theta[1]), y=expression(''~theta[2])) +
+  theme(legend.position = 'right')
+ggsave('../figures/distance_allmetrics.png', width = 6.5, height = 4, units = "in", dpi = 300)
+sumry3 <- sumry %>%
+  filter(dist<1.25)
+# summarize the occurence number of unique combination of theta1 and theta2 in sumry3
+sumry4 <- sumry3 %>%
+  group_by(theta1, theta2) %>%
+  summarise(n = n())
+sumry4$n <- as.factor(sumry4$n)
+
+ggplot(sumry, aes(x = dist)) +
+  geom_histogram() +
+  scale_x_continuous(breaks = seq(0, 9, by =0.5)) +
+  labs(x = "distance")
+ggsave('../figures/dist_hist.png', width = 5, height = 4, units = "in", dpi = 300)
+View(sumry4)
+ggplot(sumry4, aes(theta1, theta2)) +
+  geom_point(aes(color = n)) +
+  scale_color_manual(name = "Occurrence", values = c("grey", "darkgrey", "black", "red")) +
+  labs(x=expression(''~theta[1]), y=expression(''~theta[2]))
+ggsave('../figures/count.png', width = 4, height = 3, units = "in", dpi = 300)

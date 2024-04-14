@@ -212,7 +212,8 @@ trough.R0 <- ldply(invad.list.R0, function(x){
 })
 save(trough.R0,pandSize.R0,file='invasion/plot.data.RData')
 
-load("plot.data.RData")
+load("invasion/plot.data.RData")
+library(dplyr)
 troughR0 <- trough.R0 %>%
   mutate(immDur=1/H3vac.sigmaV,vac.rate=H3vac.cov/52*100)
 
@@ -227,7 +228,8 @@ pl.troughR0 <- ggplot(troughR0,aes(x=vac.rate,y=H3vac.tau2,z=trough1)) +
   geom_contour_filled(bins=4,breaks=c(-2,0,10e-8,10e-6,10e-4)) +
   geom_contour(bins=4,breaks=c(-2,0,10e-8,10e-6,10e-4),
                aes(colour = factor(..level..==10e-6,levels = c(T, F),
-              labels = c("Pandemic persistence","")))) +
+              labels = c("Pandemic persistence boundary",""))),
+              size = 1) +
   scale_colour_manual(values = c("black", "#00000000")) +
   labs(fill='Trough depth',color='')+
   xlab('Vaccination rate (%) per week')+
@@ -251,7 +253,8 @@ pl.endemic.troughR0 <- ggplot(troughR0,aes(x=vac.rate,y=H3vac.tau2,z=trough2)) +
   geom_contour_filled(bins=5,breaks=c(-2,0,10e-8,10e-6,10e-4,10e-2)) +
   geom_contour(bins=5,breaks=c(-2,0,10e-8,10e-6,10e-4,10e-2),
                aes(colour = factor(..level..==10e-6,levels = c(T, F),
-              labels = c("Endemic persistence","")))) +
+              labels = c("Endemic persistence boundary",""))),
+              size =1) +
   scale_colour_manual(values = c("black", "#00000000")) +
   labs(fill='Trough depth',color='')+
   xlab('Vaccination rate (%) per week')+

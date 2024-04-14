@@ -148,13 +148,11 @@ bestfitsparms <- data.frame()
 bestfitsparms[1,'theta1'] <- 0.8
 bestfitsparms[1,'theta2'] <- 0.5
 bestfitsparms[1,'a'] <- 0.04
-# bestfitsparms[2,'theta1'] <- 0.4
-# bestfitsparms[2,'theta2'] <- 0.4
-# bestfitsparms[2,'a'] <- 0.04
 bestfitsparms[2,'theta1'] <- 0.55
-bestfitsparms[2,'theta2'] <- 0.35
+bestfitsparms[2,'theta2'] <- 0.45
 bestfitsparms[2,'a'] <- 0.04
 for (idx in 1:nrow(bestfitsparms)){
+  idx = 2
   # initial parameter (w/ vaccine)
   parms0 <- c(R0_1=1.44,R0_2=1.60,a1=bestfitsparms[idx,'a'],
               a2=bestfitsparms[idx,'a'],sigma1=1/3.12,sigma2=1/2.28,
