@@ -44,7 +44,7 @@ pl.sigmaV.R0 <- ggplot(simdf.t3.sigmaV,aes(x=H3vac.cov/52*100,y=pl.y,z=growth.ra
   geom_contour_filled(bins=6,breaks = c(-150,-75,0,75,150,225,300)/52/7)+
   geom_contour(bins=6,breaks = c(-150,-75,0,75,150,225,300)/52/7,
                aes(colour = factor(..level..==0,levels = c(T, F), 
-                                   labels = c("Pandemic emergence","")))) + 
+                                   labels = c("Pandemic emergence boundary","")))) + 
   scale_colour_manual(values = c("darkred", "#00000000")) + 
   labs(fill='Invading strain initial\ngrowth rate (per day)',color='')+
   xlab('Vaccination rate (%) per week')+
@@ -54,7 +54,7 @@ pl.sigmaV.R0 <- ggplot(simdf.t3.sigmaV,aes(x=H3vac.cov/52*100,y=pl.y,z=growth.ra
   # scale_fill_manual(values=rev(heat.colors(12)))+
   scale_fill_manual(values=c('#287A22FF','#8DBC80FF',
                              '#fed976','#feb24c','#fc4e2a','#bd0026'))
-ggsave('H3endemicVac.pandStrR0varyInvad.NoNatImm.png',pl.sigmaV.R0, width=9,height=7)
+ggsave('figures/H3endemicVac.pandStrR0varyInvad.NoNatImm.png',pl.sigmaV.R0, width=9,height=7)
 
 # simdf.t3.rho <- simdf.t3 %>%
 #   # filter(vac.cov==unique(simdf.t3$vac.cov)[2]) %>%
